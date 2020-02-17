@@ -75,4 +75,19 @@ public class VendorControllerTest {
                 .expectStatus()
                 .isCreated();
     }
+
+    @Test
+    public void updateVendor() {
+        BDDMockito
+                .given(vendorRepository.save(any(Vendor.class)))
+                .willReturn(Mono.just(Vendor.builder().build()));
+
+        Mono<Vendor> updated = Mono.just(Vendor.builder().firstName("First Name").lastName("Last Name").build());
+
+        webTestClient.put().uri("/api/v1/vendors/id")
+                .body(updated, Vendor.class)
+                .exchange()
+                .expectStatus()
+                .isOk();
+    }
 }
