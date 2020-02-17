@@ -9,10 +9,12 @@ import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.reactivestreams.Publisher;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -57,5 +59,20 @@ public class VendorControllerTest {
         webTestClient.get().uri("/api/v1/vendors/id")
                 .exchange()
                 .expectBody(Vendor.class);
+    }
+
+    @Test
+    public void saveVendor() {
+        BDDMockito
+                .given(vendorRepository.saveAll(any(Publisher.class)))
+                .willReturn(Flux.just(Vendor.builder().build()));
+
+        Mono<Vendor> saved = Mono.just(Vendor.builder().firstName("First Name").lastName("Last Name").build());
+
+        webTestClient.post().uri("/api/v1/vendors")
+                .body(saved, Vendor.class)
+                .exchange()
+                .expectStatus()
+                .isCreated();
     }
 }
