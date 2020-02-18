@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -89,5 +90,49 @@ public class VendorControllerTest {
                 .exchange()
                 .expectStatus()
                 .isOk();
+    }
+
+    @Test
+    public void patchVendorWithChanges() {
+
+        BDDMockito
+                .given(vendorRepository.findById(anyString()))
+                .willReturn(Mono.just(Vendor.builder().firstName("F Name").lastName("Last Name").build()));
+
+        BDDMockito
+                .given(vendorRepository.save(any(Vendor.class)))
+                .willReturn(Mono.just(Vendor.builder().build()));
+
+        Mono<Vendor> patched = Mono.just(Vendor.builder().firstName("First Name").lastName("Last Name").build());
+
+        webTestClient.patch().uri("/api/v1/vendors/id")
+                .body(patched, Vendor.class)
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        BDDMockito.verify(vendorRepository).save(any(Vendor.class));
+    }
+
+    @Test
+    public void patchVendorNoChanges() {
+
+        BDDMockito
+                .given(vendorRepository.findById(anyString()))
+                .willReturn(Mono.just(Vendor.builder().firstName("First Name").lastName("Last Name").build()));
+
+        BDDMockito
+                .given(vendorRepository.save(any(Vendor.class)))
+                .willReturn(Mono.just(Vendor.builder().build()));
+
+        Mono<Vendor> patched = Mono.just(Vendor.builder().firstName("First Name").lastName("Last Name").build());
+
+        webTestClient.patch().uri("/api/v1/vendors/id")
+                .body(patched, Vendor.class)
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        BDDMockito.verify(vendorRepository, Mockito.never()).save(any(Vendor.class));
     }
 }
